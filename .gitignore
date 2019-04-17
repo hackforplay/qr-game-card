@@ -1,5 +1,7 @@
 node_modules
 
 *.sketch
+*.pdf
+
 template/text-previews
 template/previews
