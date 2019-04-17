@@ -1,0 +1,5 @@
+node_modules
+
+*.sketch
+template/text-previews
+template/previews

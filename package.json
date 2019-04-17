@@ -1,0 +1,14 @@
+{
+  "name": "qr-game-card",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jszip": "^3.2.1"
+  }
+}
