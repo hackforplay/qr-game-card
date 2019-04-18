@@ -2,6 +2,7 @@ node_modules
 
 *.sketch
 *.pdf
+token
 
 template/text-previews
 template/previews

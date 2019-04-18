@@ -5,19 +5,28 @@ const child_process = require("child_process");
 const fetch = require("node-fetch");
 const md5 = require("md5");
 
-const data = {
-  title: "タイトルを入れる",
-  author: "作者名を入れる"
-};
+const urlRegexp = /^https?\:\/\/(www\.)?hackforplay\.xyz\/works\/(\w+)/;
+const url = "https://www.hackforplay.xyz/works/DiO7qmB9Oql8yzv8A087";
+
+const token = fs.readFileSync("./token", "utf8");
 
 const zip = new JSZip();
 
 (async () => {
+  urlRegexp.lastIndex = 0;
+  const result = urlRegexp.exec(url);
+  const workId = result && result[2];
+  if (!result || typeof workId !== "string") {
+    throw new Error("Invalid URL");
+  }
+
+  const data = await loadWork(workId, token);
+
   data.thumbnail = await loadImage(
-    "https://www.hackforplay.xyz/api/works/dMBuCE0rjpjBaTpJE6vp/thumbnail"
+    `https://www.hackforplay.xyz/api/works/${workId}/thumbnail`
   );
 
-  addRecursive("./template");
+  addRecursive(data, "./template");
 
   zip
     .generateNodeStream({ type: "nodebuffer", streamFiles: true })
@@ -31,6 +40,24 @@ const zip = new JSZip();
     });
 })();
 
+async function loadWork(workId, token) {
+  const workDocResponse = await fetch(
+    `https://firestore.googleapis.com/v1/projects/hackforplay-production/databases/(default)/documents/works/${workId}`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`
+      }
+    }
+  );
+  const workDocJson = await workDocResponse.text();
+  const workDoc = JSON.parse(workDocJson);
+
+  return {
+    title: workDoc.fields.title.stringValue,
+    author: workDoc.fields.author.stringValue
+  };
+}
+
 async function loadImage(url) {
   const response = await fetch(url);
   const buffer = await response.buffer();
@@ -39,15 +66,15 @@ async function loadImage(url) {
   return newPath;
 }
 
-function processPage(json) {
+function processPage(data, json) {
   const page = JSON.parse(json);
   const title = findObject(page, "text", "title");
   if (title) {
-    title.attributedString.string = data.title;
+    title.attributedString.string = data.title + "　"; // 英語だとフォントが変わる？ので、全角スペースを入れる
   }
   const author = findObject(page, "text", "author");
   if (author) {
-    author.attributedString.string = data.author;
+    author.attributedString.string = data.author + "　"; // 英語だとフォントが変わる？ので、全角スペースを入れる
   }
   const thumbnail = findObject(page, "bitmap", "gameThum");
   if (thumbnail) {
@@ -67,7 +94,7 @@ function findObject(object, _class, name) {
   return null;
 }
 
-function addRecursive(rootPath, relativePath = "") {
+function addRecursive(data, rootPath, relativePath = "") {
   const absolutePath = path.join(rootPath, relativePath);
   const stat = fs.statSync(absolutePath);
   if (
@@ -76,12 +103,12 @@ function addRecursive(rootPath, relativePath = "") {
     relativePath !== "text-previews"
   ) {
     for (const basePath of fs.readdirSync(absolutePath)) {
-      addRecursive(rootPath, path.join(relativePath, basePath));
+      addRecursive(data, rootPath, path.join(relativePath, basePath));
     }
   } else if (stat.isFile()) {
     if (/pages\/.+\.json$/i.test(absolutePath)) {
       const text = fs.readFileSync(absolutePath, "utf8");
-      zip.file(relativePath, processPage(text));
+      zip.file(relativePath, processPage(data, text));
     } else {
       const buffer = fs.readFileSync(absolutePath);
       zip.file(relativePath, buffer);
