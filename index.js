@@ -2,27 +2,42 @@ const JSZip = require("jszip");
 const fs = require("fs");
 const path = require("path");
 const child_process = require("child_process");
+const fetch = require("node-fetch");
+const md5 = require("md5");
 
 const data = {
   title: "タイトルを入れる",
-  author: "作者名を入れる",
-  thumbnail: "images/878bdf66b1d604785d1ec03d816336460f25b5d1.png"
+  author: "作者名を入れる"
 };
 
 const zip = new JSZip();
 
-addRecursive("./template");
+(async () => {
+  data.thumbnail = await loadImage(
+    "https://www.hackforplay.xyz/api/works/dMBuCE0rjpjBaTpJE6vp/thumbnail"
+  );
 
-zip
-  .generateNodeStream({ type: "nodebuffer", streamFiles: true })
-  .pipe(fs.createWriteStream("out.sketch"))
-  .on("finish", function() {
-    console.log("out.sketch written.");
-    const cmd = `eval "$(mdfind kMDItemCFBundleIdentifier == 'com.bohemiancoding.sketch3' | head -n 1)/Contents/Resources/sketchtool/bin/sketchtool export pages out.sketch --formats=pdf"`;
-    console.log(cmd);
-    child_process.execSync(cmd);
-    console.log("pdf generated!");
-  });
+  addRecursive("./template");
+
+  zip
+    .generateNodeStream({ type: "nodebuffer", streamFiles: true })
+    .pipe(fs.createWriteStream("out.sketch"))
+    .on("finish", function() {
+      console.log("out.sketch written.");
+      const cmd = `eval "$(mdfind kMDItemCFBundleIdentifier == 'com.bohemiancoding.sketch3' | head -n 1)/Contents/Resources/sketchtool/bin/sketchtool export pages out.sketch --formats=pdf"`;
+      console.log(cmd);
+      child_process.execSync(cmd);
+      console.log("pdf generated!");
+    });
+})();
+
+async function loadImage(url) {
+  const response = await fetch(url);
+  const buffer = await response.buffer();
+  const newPath = `images/${md5(url)}.png`;
+  zip.file(newPath, buffer);
+  return newPath;
+}
 
 function processPage(json) {
   const page = JSON.parse(json);
