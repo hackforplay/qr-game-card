@@ -1,13 +1,16 @@
 {
   "name": "qr-game-card",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.js https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN -o dest"
   },
   "author": "",
   "license": "ISC",
+  "bin": {
+    "qrgc": "index.js"
+  },
   "dependencies": {
     "commander": "^2.20.0",
     "jszip": "^3.2.1",
