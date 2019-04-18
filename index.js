@@ -4,6 +4,8 @@ const path = require("path");
 const child_process = require("child_process");
 const fetch = require("node-fetch");
 const md5 = require("md5");
+const qrcode = require("qrcode");
+const os = require("os");
 
 const urlRegexp = /^https?\:\/\/(www\.)?hackforplay\.xyz\/works\/(\w+)/;
 const url = "https://www.hackforplay.xyz/works/DiO7qmB9Oql8yzv8A087";
@@ -18,7 +20,9 @@ const zip = new JSZip();
     throw new Error("Invalid URL");
   }
 
-  const data = await loadWork(workId, token);
+  const data = await loadWork(workId);
+
+  data.qr = await loadQRImage(`https://www.hackforplay.xyz/qr/${workId}`);
 
   data.thumbnail = await loadImage(
     `https://www.hackforplay.xyz/api/works/${workId}/thumbnail`
@@ -62,6 +66,20 @@ async function loadImage(url) {
   return newPath;
 }
 
+async function loadQRImage(url, width) {
+  const fileName = md5(url) + ".png";
+  const tmpPath = path.join(os.tmpdir(), fileName);
+  await qrcode.toFile(tmpPath, url, {
+    type: "png",
+    width
+  });
+  const buffer = fs.readFileSync(tmpPath);
+  fs.unlinkSync(tmpPath);
+  const newPath = `images/${fileName}`;
+  zip.file(newPath, buffer);
+  return newPath;
+}
+
 function processPage(data, json) {
   const page = JSON.parse(json);
   const title = findObject(page, "text", "title");
@@ -75,6 +93,10 @@ function processPage(data, json) {
   const thumbnail = findObject(page, "bitmap", "gameThum");
   if (thumbnail) {
     thumbnail.image._ref = data.thumbnail;
+  }
+  const qr = findObject(page, "bitmap", "qr");
+  if (qr) {
+    qr.image._ref = data.qr;
   }
   return JSON.stringify(page);
 }
