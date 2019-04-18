@@ -1,5 +1,5 @@
 {
-  "name": "qr-game-card",
+  "name": "@hackforplay/qr-game-card",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
