@@ -8,8 +8,6 @@ const md5 = require("md5");
 const urlRegexp = /^https?\:\/\/(www\.)?hackforplay\.xyz\/works\/(\w+)/;
 const url = "https://www.hackforplay.xyz/works/DiO7qmB9Oql8yzv8A087";
 
-const token = fs.readFileSync("./token", "utf8");
-
 const zip = new JSZip();
 
 (async () => {
@@ -40,21 +38,19 @@ const zip = new JSZip();
     });
 })();
 
-async function loadWork(workId, token) {
+async function loadWork(workId) {
   const workDocResponse = await fetch(
-    `https://firestore.googleapis.com/v1/projects/hackforplay-production/databases/(default)/documents/works/${workId}`,
-    {
-      headers: {
-        authorization: `Bearer ${token}`
-      }
-    }
+    `https://www.hackforplay.xyz/api/works/${workId}`
   );
+  if (!workDocResponse.ok) {
+    throw new Error(workDocResponse.statusText);
+  }
   const workDocJson = await workDocResponse.text();
-  const workDoc = JSON.parse(workDocJson);
+  const work = JSON.parse(workDocJson);
 
   return {
-    title: workDoc.fields.title.stringValue,
-    author: workDoc.fields.author.stringValue
+    title: work.title,
+    author: work.author
   };
 }
 
