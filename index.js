@@ -5,7 +5,8 @@ const child_process = require("child_process");
 
 const data = {
   title: "タイトルを入れる",
-  author: "作者名を入れる"
+  author: "作者名を入れる",
+  thumbnail: "images/878bdf66b1d604785d1ec03d816336460f25b5d1.png"
 };
 
 const zip = new JSZip();
@@ -32,6 +33,10 @@ function processPage(json) {
   const author = findObject(page, "text", "author");
   if (author) {
     author.attributedString.string = data.author;
+  }
+  const thumbnail = findObject(page, "bitmap", "gameThum");
+  if (thumbnail) {
+    thumbnail.image._ref = data.thumbnail;
   }
   return JSON.stringify(page);
 }
