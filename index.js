@@ -2,10 +2,6 @@ const JSZip = require("jszip");
 const fs = require("fs");
 const path = require("path");
 const child_process = require("child_process");
-const fetch = require("node-fetch");
-const md5 = require("md5");
-const qrcode = require("qrcode");
-const os = require("os");
 
 const urlRegexp = /^https?\:\/\/(www\.)?hackforplay\.xyz\/works\/(\w+)/;
 const url = "https://www.hackforplay.xyz/works/DiO7qmB9Oql8yzv8A087";
@@ -20,13 +16,8 @@ const zip = new JSZip();
     throw new Error("Invalid URL");
   }
 
-  const data = await loadWork(workId);
-
-  data.qr = await loadQRImage(`https://www.hackforplay.xyz/qr/${workId}`);
-
-  data.thumbnail = await loadImage(
-    `https://www.hackforplay.xyz/api/works/${workId}/thumbnail`
-  );
+  const loadData = require("./loadData");
+  const data = await loadData(workId, zip);
 
   addRecursive(data, "./template");
 
@@ -41,44 +32,6 @@ const zip = new JSZip();
       console.log("pdf generated!");
     });
 })();
-
-async function loadWork(workId) {
-  const workDocResponse = await fetch(
-    `https://www.hackforplay.xyz/api/works/${workId}`
-  );
-  if (!workDocResponse.ok) {
-    throw new Error(workDocResponse.statusText);
-  }
-  const workDocJson = await workDocResponse.text();
-  const work = JSON.parse(workDocJson);
-
-  return {
-    title: work.title,
-    author: work.author
-  };
-}
-
-async function loadImage(url) {
-  const response = await fetch(url);
-  const buffer = await response.buffer();
-  const newPath = `images/${md5(url)}.png`;
-  zip.file(newPath, buffer);
-  return newPath;
-}
-
-async function loadQRImage(url, width) {
-  const fileName = md5(url) + ".png";
-  const tmpPath = path.join(os.tmpdir(), fileName);
-  await qrcode.toFile(tmpPath, url, {
-    type: "png",
-    width
-  });
-  const buffer = fs.readFileSync(tmpPath);
-  fs.unlinkSync(tmpPath);
-  const newPath = `images/${fileName}`;
-  zip.file(newPath, buffer);
-  return newPath;
-}
 
 function processPage(data, json) {
   const page = JSON.parse(json);
