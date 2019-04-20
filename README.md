@@ -1,0 +1,38 @@
+# qr-game-card
+
+## Requirements
+
+- [Sketch](https://www.sketch.com/) (macOS only)
+- Node.js ^10.0
+
+## Getting Started
+
+Install then execute
+
+- `npx @hackforplay/qr-game-card <url ...>`
+- For example: `npx @hackforplay/qr-game-card https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN`
+
+or, you can install globally to
+
+- `npm install -g @hackforplay/qr-game-card`
+- `qrgc <url ...>`
+
+> You may need to `sudo` to install globally
+
+
+## CLI
+
+```
+Usage: qrgc [options] <url ...>
+
+Options:
+  -v, --version         output the version number
+  -o, --output [value]  Where to output the generated files - defaults to the current working directory (optional).
+  -h, --help            output usage information
+```
+
+For example: `qrgc -o path/to/destination https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN`
+
+## API
+
+- Not provided
