@@ -1,13 +1,13 @@
 {
   "name": "@hackforplay/qr-game-card",
   "version": "1.0.2",
-  "description": "",
+  "description": "Experiments. QR Game Card is the real card to promote games created by children on HackforPlay.",
   "main": "index.js",
   "scripts": {
     "test": "node index.js https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN -o dest"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "teramotodaiki <i101323@gmail.com>",
+  "license": "MIT",
   "bin": {
     "qrgc": "index.js"
   },

@@ -1,5 +1,7 @@
 # qr-game-card
 
+[日本語](https://github.com/hackforplay/qr-game-card/blob/master/README_ja.md)
+
 ## Requirements
 
 - [Sketch](https://www.sketch.com/) (macOS only)
@@ -18,7 +20,6 @@ or, you can install globally to
 - `qrgc <url ...>`
 
 > You may need to `sudo` to install globally
-
 
 ## CLI
 
