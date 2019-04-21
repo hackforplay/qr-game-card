@@ -1,12 +1,13 @@
 const fetch = require("node-fetch");
-const md5 = require("md5");
 const qrcode = require("qrcode");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
 
-const loadWork = async url => {
-  const workDocResponse = await fetch(url);
+exports.loadWork = async workId => {
+  const workDocResponse = await fetch(
+    `https://www.hackforplay.xyz/api/works/${workId}`
+  );
   if (!workDocResponse.ok) {
     throw new Error(workDocResponse.statusText);
   }
@@ -19,43 +20,32 @@ const loadWork = async url => {
   };
 };
 
-const loadImage = async (url, zip) => {
-  const response = await fetch(url);
-  const buffer = await response.buffer();
-  const newPath = `images/${md5(url)}.png`;
-  zip.file(newPath, buffer);
-  return newPath;
+exports.loadImage = async workId => {
+  const response = await fetch(
+    `https://www.hackforplay.xyz/api/works/${workId}/thumbnail`
+  );
+  return await response.buffer();
 };
 
-const loadQRImage = async (url, width, zip) => {
-  const fileName = md5(url) + ".png";
+exports.loadQRImage = async (workId, width) => {
+  const fileName = workId + "-qr.png";
   const tmpPath = path.join(os.tmpdir(), fileName);
-  await qrcode.toFile(tmpPath, url, {
+  await qrcode.toFile(tmpPath, `https://www.hackforplay.xyz/qr/${workId}`, {
     type: "png",
     width
   });
-  const buffer = fs.readFileSync(tmpPath);
-  fs.unlinkSync(tmpPath);
-  const newPath = `images/${fileName}`;
-  zip.file(newPath, buffer);
-  return newPath;
-};
 
-module.exports = async (workId, zip) => {
-  const data = await loadWork(
-    `https://www.hackforplay.xyz/api/works/${workId}`
-  );
-
-  data.qr = await loadQRImage(
-    `https://www.hackforplay.xyz/qr/${workId}`,
-    75,
-    zip
-  );
-
-  data.thumbnail = await loadImage(
-    `https://www.hackforplay.xyz/api/works/${workId}/thumbnail`,
-    zip
-  );
-
-  return data;
+  return await new Promise((resolve, reject) => {
+    try {
+      fs.readFile(tmpPath, (err, data) => {
+        if (err) reject(err);
+        fs.unlink(tmpPath, err => {
+          if (err) reject(err);
+          resolve(data);
+        });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 };

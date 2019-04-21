@@ -2,42 +2,59 @@ const JSZip = require("jszip");
 const child_process = require("child_process");
 const path = require("path");
 const fs = require("fs");
-const os = require("os");
 const mkdirp = require("mkdirp");
 
 const cwd = process.cwd();
 
-const addRecursive = (zip, data, template, relativePath = "") => {
-  const absolutePath = path.resolve(template, relativePath);
-  const stat = fs.statSync(absolutePath);
-  if (
-    stat.isDirectory() &&
-    relativePath !== "previews" &&
-    relativePath !== "text-previews"
-  ) {
-    for (const basePath of fs.readdirSync(absolutePath)) {
-      addRecursive(zip, data, template, path.join(relativePath, basePath));
-    }
-  } else if (stat.isFile()) {
-    if (/pages\/.+\.json$/i.test(absolutePath)) {
-      const text = fs.readFileSync(absolutePath, "utf8");
-      const convert = require("./convert");
-      zip.file(relativePath, convert(data, text));
-    } else {
-      const buffer = fs.readFileSync(absolutePath);
-      zip.file(relativePath, buffer);
+const generate = async workId => {
+  const findObject = require("./findObject");
+  const template = fs.readFileSync("./out.sketch");
+  const zip = await JSZip.loadAsync(template);
+
+  const { loadWork, loadImage, loadQRImage } = require("./loadData");
+  const { title, author } = await loadWork(workId);
+
+  for (const [fileName, zipObject] of Object.entries(zip.files)) {
+    if (/pages\/.+\.json$/i.test(fileName)) {
+      const json = await zipObject.async("text");
+      const page = JSON.parse(json);
+
+      let modified = false;
+
+      const titleNode = findObject(page, "text", "title");
+      if (titleNode) {
+        titleNode.attributedString.string = title + "　"; // 英語だとフォントが変わる？ので、全角スペースを入れる
+        modified = true;
+      }
+      const authorNode = findObject(page, "text", "author");
+      if (authorNode) {
+        authorNode.attributedString.string = author + "　"; // 英語だとフォントが変わる？ので、全角スペースを入れる
+        modified = true;
+      }
+      const thumbnailNode = findObject(page, "bitmap", "gameThum");
+      if (thumbnailNode) {
+        const buffer = await loadImage(workId);
+        zip.file(thumbnailNode.image._ref, buffer); // Overwrite
+        modified = true;
+      }
+      const qrNode = findObject(page, "bitmap", "qr");
+      if (qrNode) {
+        const buffer = await loadQRImage(workId, qrNode.frame.width);
+        zip.file(qrNode.image._ref, buffer); // Overwrite
+        modified = true;
+      }
+
+      if (modified) {
+        zip.file(fileName, JSON.stringify(page));
+      }
     }
   }
+  return zip;
 };
 
 module.exports = (workId, { output = "./" }) =>
   new Promise(async (resolve, reject) => {
-    const zip = new JSZip();
-
-    const loadData = require("./loadData");
-    const data = await loadData(workId, zip);
-
-    addRecursive(zip, data, path.join(__dirname, "template"));
+    const zip = await generate(workId);
 
     const outputDir = path.join(cwd, output);
     mkdirp.sync(outputDir);
