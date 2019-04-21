@@ -27,12 +27,13 @@ or, you can install globally to
 Usage: qrgc [options] <url ...>
 
 Options:
-  -v, --version         output the version number
-  -o, --output [value]  Where to output the generated files - defaults to the current working directory (optional).
-  -h, --help            output usage information
+  -v, --version           output the version number
+  -o, --output [value]    Where to output the generated files - defaults to the current working directory (optional).
+  -t, --template [value]  Where is sketch file which is used as template. It allows relative path from current working directory or default template (yellow). (default: "yellow")
+  -h, --help              output usage information
 ```
 
-For example: `qrgc -o path/to/destination https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN`
+For example: `qrgc -o path/to/destination -t yellow https://www.hackforplay.xyz/works/ncWg2cgh4LOQpuAyfrUN`
 
 ## API
 
