@@ -8,7 +8,7 @@ const cwd = process.cwd();
 
 const generate = async workId => {
   const findObject = require("./findObject");
-  const template = fs.readFileSync("./out.sketch");
+  const template = fs.readFileSync("./templates/yellow.sketch");
   const zip = await JSZip.loadAsync(template);
 
   const { loadWork, loadImage, loadQRImage } = require("./loadData");
