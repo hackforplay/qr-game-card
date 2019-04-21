@@ -10,6 +10,11 @@ commander
     "-o, --output [value]",
     "Where to output the generated files - defaults to the current working directory (optional)."
   )
+  .option(
+    "-t, --template [value]",
+    "Where is sketch file which is used as template. It allows relative path from current working directory or default template (yellow).",
+    "yellow"
+  )
   .parse(process.argv);
 
 if (commander.args.length < 1) {

@@ -6,10 +6,24 @@ const mkdirp = require("mkdirp");
 
 const cwd = process.cwd();
 
-const generate = async workId => {
+const findTemplate = template => {
+  try {
+    const buffer = fs.readFileSync(path.join(cwd, template));
+    return buffer;
+  } catch (error) {}
+  try {
+    const preset = path.join(__dirname, "./templates", template + ".sketch");
+    const buffer = fs.readFileSync(preset);
+    return buffer;
+  } catch (error) {
+    throw new Error(`Template not found: ${template}`);
+  }
+};
+
+const generate = async (workId, template) => {
   const findObject = require("./findObject");
-  const template = fs.readFileSync("./templates/yellow.sketch");
-  const zip = await JSZip.loadAsync(template);
+  const sketch = findTemplate(template);
+  const zip = await JSZip.loadAsync(sketch);
 
   const { loadWork, loadImage, loadQRImage } = require("./loadData");
   const { title, author } = await loadWork(workId);
@@ -52,9 +66,9 @@ const generate = async workId => {
   return zip;
 };
 
-module.exports = (workId, { output = "./" }) =>
+module.exports = (workId, { output = "./", template }) =>
   new Promise(async (resolve, reject) => {
-    const zip = await generate(workId);
+    const zip = await generate(workId, template);
 
     const outputDir = path.join(cwd, output);
     mkdirp.sync(outputDir);
