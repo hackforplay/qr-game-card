@@ -79,11 +79,11 @@ module.exports = (workId, { output = "./", template }) =>
       .pipe(fs.createWriteStream(sketch))
       .on("finish", function() {
         console.log("out.sketch written.");
-        const cmd = `eval "$(mdfind kMDItemCFBundleIdentifier == 'com.bohemiancoding.sketch3' | head -n 1)/Contents/Resources/sketchtool/bin/sketchtool export pages ${sketch} --formats=pdf"`;
+        const cmd = `eval "$(mdfind kMDItemCFBundleIdentifier == 'com.bohemiancoding.sketch3' | head -n 1)/Contents/Resources/sketchtool/bin/sketchtool export artboards ${sketch} --formats=pdf"`;
         console.log(cmd);
         child_process.execSync(cmd);
         console.log("pdf generated!");
-        const tmp = "Page 1.pdf"; // Sketch が生成したファイルの名前, output でパスを変更できそうだったが, うまく変えられなかったので, 一時的に cwd に出力している
+        const tmp = "Artboard.pdf"; // Sketch が生成したファイルの名前, output でパスを変更できそうだったが, うまく変えられなかったので, 一時的に cwd に出力している
         fs.renameSync(tmp, path.join(outputDir, workId + ".pdf"));
         resolve();
       });
