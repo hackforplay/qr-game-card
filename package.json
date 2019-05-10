@@ -1,6 +1,6 @@
 {
   "name": "@hackforplay/qr-game-card",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Experiments. QR Game Card is the real card to promote games created by children on HackforPlay.",
   "main": "index.js",
   "scripts": {
